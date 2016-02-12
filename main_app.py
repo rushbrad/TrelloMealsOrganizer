@@ -1,6 +1,6 @@
 from trello import TrelloApi
-import datetime
 from random import shuffle
+import datetime
 import re
 import _config
 
