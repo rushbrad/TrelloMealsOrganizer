@@ -29,6 +29,7 @@ def get_trello_elements(board_element, requested_object, parent_id): #Returns a 
     if board_element == 'card':
         card_object_list = []
         card_list = trello.lists.get_card(parent_id) #parent_id should be a column id in this instance
+        #print(card_list)
         for card in card_list:
             card_object_list.append(card.get(requested_object))
         return card_object_list
@@ -53,12 +54,32 @@ def dinner_randomizer():
     column_ids = [_config.dinner_id, _config.breakfast_id]
     for column in column_ids:
         column_card_ids = get_trello_elements('card', 'id', column)
+        column_card_label = get_trello_elements('card', 'labels', column)
+        #print(column_card_label)
         shuffle(column_card_ids)
         weekly_meals = [column_card_ids[i] for i in (0, 1, 2, 3, 4, 5, 6)]
         count = 0
         for meal in weekly_meals:
             trello.cards.update_idList(meal, days_of_week_ids[count])
             count += 1
+
+
+def sides():
+    for column in days_of_week_ids:
+        column_card_label = get_trello_elements('card', 'labels', column)
+        for label in column_card_label:
+            for items in label:
+                for i, value in items.items():
+                    item = str(value)
+                    if 'SIDE' in item.upper():
+                        column_ids = [_config.sides_id]
+                        for sides_column in column_ids:
+                            column_card_ids = get_trello_elements('card', 'id', sides_column)
+                            shuffle(column_card_ids)
+                            side_meal = [column_card_ids[0]]
+                            for sides in side_meal:
+                                print(sides, column)
+                                trello.cards.update_idList(sides, column)
 
 
 def reset_week():  # Resets weekly meals (if present) and returns them to Dinner column
@@ -74,6 +95,8 @@ def reset_week():  # Resets weekly meals (if present) and returns them to Dinner
                 trello.cards.update_idList(card_id, _config.dinner_id)
             elif 'BREAKFAST' in card_name.upper():
                 trello.cards.update_idList(card_id, _config.breakfast_id)
+            elif 'SIDE' in card_name.upper():
+                trello.cards.update_idList(card_id, _config.sides_id)
 
 
 
@@ -162,6 +185,7 @@ def populate_shopping_list():
 
 def main():
     dinner_randomizer()
+    sides()
     delete_old_shopping_list()
     get_column_ids()
     get_card_ids()
