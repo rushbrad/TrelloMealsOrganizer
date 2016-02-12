@@ -2,13 +2,13 @@ from trello import TrelloApi
 import datetime
 from random import shuffle
 import re
+import _config
 
 # Initialize Variables 
-app_key = '6af848af1e101976e1a3d5372e9a7292'
-secret_app_key = 'ab89e5551cb563d5f38b6b9b3b677a8ef580baa21024b01ba26d05edf710c6d6'
-user_token = 'f25386dd132e2d2ac08b5ffd6483f002f34469090b4763b8acf6eaaaf003a57e'
-board_id = '5599db0e2a1c5740a85d0d11'
-shopping_list_column_id = '56797045d62610c661784f23'
+app_key = _config.app_key
+user_token = _config.user_token
+board_id = _config.board_id
+shopping_list_column_id = _config.shopping_list_column_id
 today = datetime.datetime.today()
 
 # Initialize Arrays
@@ -19,11 +19,12 @@ column_id_list = []
 dinner_card_list = []
 item_list = []
 days_of_week = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday_2']
-days_of_week_ids = ['5599dd6f707488af95237e5c', '5599dd7025416c771f756842', '5599dd7262143dc373683325', '5599dd74b724b0b3955572f3', '5599dd766baa4bb20f56b847', '5599dd77758228dd731212e0', '56798553508c645f9fb2b75e']
+days_of_week_ids = _config.days_of_week_ids
 
 # Initialize the trello api with app key and user token for write access and get board via board id
 trello = TrelloApi(app_key, user_token)
 trello.boards.get(board_id)
+
 
 def get_trello_elements(board_element, requested_object, parent_id): #Returns a list of data based on the given trello board element, requested data, and parent id of board element
     if board_element == 'card':
@@ -98,22 +99,26 @@ def get_card_ids():  # Get the card ids in each list
         card_dict = card[0]
         checklist_id = card_dict.get('idChecklists')
         checklist_id_list.append(checklist_id)
-        
+
+
 def ingredient_consolidator(ingredient_list):
-    #ingredient_list = ['1 Green pepper', '1 Lime', '1 Red Onion', '1 white Onion', '1.5 lbs Sweet Potatoes', '2 Red Onion', '1 Red Onion']
+
     shopping_list_dict = {}
     
     for item in ingredient_list:
-        ingredient_letters = re.findall(r'[a-zA-Z]', item)
-        ingredient_numbers = re.findall(r'\d+', item)
-        
+
+        ingredient_letters = re.findall(r'[a-zA-Z\\:\sa-zA-Z]', item)
+        ingredient_amount = re.findall(r'\d+\.?\d*', item)
+        print(ingredient_amount)
+
         ingredient = "".join(ingredient_letters)
-        total = ingredient_numbers[0]
-        
+        ingredient_number = "".join(ingredient_amount)
+        ingredient_float = float(ingredient_number)
+
         if ingredient in shopping_list_dict:
-            shopping_list_dict[ingredient] += int(total)
+            shopping_list_dict[ingredient] += ingredient_float
         else:
-            shopping_list_dict[ingredient] = int(total)
+            shopping_list_dict[ingredient] = ingredient_float
     
     return shopping_list_dict
 
@@ -143,19 +148,17 @@ def populate_shopping_list():
                 item = checklist_item.get('name')
                 item_list.append(item)
 
-    #final_item_list = list(set(item_list))
     sorted_item_list = sorted(item_list)
-    print(sorted_item_list)
     final_sorted_list = ingredient_consolidator(sorted_item_list) 
 
     for item, value in final_sorted_list.items():
         items = (str(value) + ' ' + item)
         print(items)
         trello.checklists.new_checkItem(shopping_checklist_id, items)
-        #print(item + ' successfully added to shopping list!')
 
 
 def main():
+    dinner_randomizer()
     delete_old_shopping_list()
     get_column_ids()
     get_card_ids()
@@ -163,6 +166,5 @@ def main():
     print('\n' + 'Shopping list complete!')
 
 
-dinner_randomizer()
 main()
-#ingredient_consolidator()
+
