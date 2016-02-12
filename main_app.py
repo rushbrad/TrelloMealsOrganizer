@@ -78,7 +78,6 @@ def sides():
                             shuffle(column_card_ids)
                             side_meal = [column_card_ids[0]]
                             for sides in side_meal:
-                                print(sides, column)
                                 trello.cards.update_idList(sides, column)
 
 
