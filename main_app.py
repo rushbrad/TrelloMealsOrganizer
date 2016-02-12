@@ -12,7 +12,6 @@ shopping_list_column_id = _config.shopping_list_column_id
 today = datetime.datetime.today()
 
 # Initialize Arrays
-
 card_id_list = []
 checklist_id_list = []
 column_id_list = []
