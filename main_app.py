@@ -51,7 +51,7 @@ def get_trello_elements(board_element, requested_object, parent_id): #Returns a 
 
 def dinner_randomizer():
     reset_week()
-    dinner_card_ids = get_trello_elements('card', 'id', '5599dd3520b1fa5d0888dfad')
+    dinner_card_ids = get_trello_elements('card', 'id', _config.dinner_id)
 
     shuffle(dinner_card_ids)
 
@@ -71,7 +71,7 @@ def reset_week():  # Resets weekly meals (if present) and returns them to Dinner
             if card_id == "":
                 delete_old_shopping_list()
             else:
-                trello.cards.update_idList(card_id, '5599dd3520b1fa5d0888dfad')
+                trello.cards.update_idList(card_id, _config.dinner_id)
 
 
 def delete_old_shopping_list():  # Gets current shopping list card ID and delete it
