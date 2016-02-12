@@ -32,7 +32,7 @@ def get_trello_elements(board_element, requested_object, parent_id): #Returns a 
         for card in card_list:
             card_object_list.append(card.get(requested_object))
         return card_object_list
-    
+
     elif board_element == 'column':
         column_object_list = []
         column_list = trello.boards.get_list(parent_id) #parent_id should be a board id in this instance
@@ -50,16 +50,15 @@ def get_trello_elements(board_element, requested_object, parent_id): #Returns a 
 
 def dinner_randomizer():
     reset_week()
-    dinner_card_ids = get_trello_elements('card', 'id', _config.dinner_id)
-
-    shuffle(dinner_card_ids)
-
-    weekly_dinners = [dinner_card_ids[i] for i in (0, 1, 2, 3, 4, 5, 6)]
-    count = 0
-
-    for dinner in weekly_dinners:
-        trello.cards.update_idList(dinner, days_of_week_ids[count])
-        count += 1
+    column_ids = [_config.dinner_id, _config.breakfast_id]
+    for column in column_ids:
+        column_card_ids = get_trello_elements('card', 'id', column)
+        shuffle(column_card_ids)
+        weekly_meals = [column_card_ids[i] for i in (0, 1, 2, 3, 4, 5, 6)]
+        count = 0
+        for meal in weekly_meals:
+            trello.cards.update_idList(meal, days_of_week_ids[count])
+            count += 1
 
 
 def reset_week():  # Resets weekly meals (if present) and returns them to Dinner column
@@ -67,10 +66,15 @@ def reset_week():  # Resets weekly meals (if present) and returns them to Dinner
         dinner_card_json = trello.lists.get_card(column)
         for dict_2 in dinner_card_json:
             card_id = dict_2.get('id')
+            card_name = dict_2.get('name')
+            #print(card_id, card_name)
             if card_id == "":
                 delete_old_shopping_list()
-            else:
+            elif 'DINNER' in card_name.upper():
                 trello.cards.update_idList(card_id, _config.dinner_id)
+            elif 'BREAKFAST' in card_name.upper():
+                trello.cards.update_idList(card_id, _config.breakfast_id)
+
 
 
 def delete_old_shopping_list():  # Gets current shopping list card ID and delete it
@@ -118,7 +122,7 @@ def ingredient_consolidator(ingredient_list):
             shopping_list_dict[ingredient] += ingredient_float
         else:
             shopping_list_dict[ingredient] = ingredient_float
-    
+
     return shopping_list_dict
 
 
@@ -148,7 +152,7 @@ def populate_shopping_list():
                 item_list.append(item)
 
     sorted_item_list = sorted(item_list)
-    final_sorted_list = ingredient_consolidator(sorted_item_list) 
+    final_sorted_list = ingredient_consolidator(sorted_item_list)
 
     for item, value in final_sorted_list.items():
         items = (str(value) + ' ' + item)
